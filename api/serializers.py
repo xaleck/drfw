@@ -48,6 +48,7 @@ class LoginSerializer(serializers.Serializer):
         refresh = RefreshToken.for_user(user)
         print(user)
         return {
+            'username': validated_data["username"],
             'access': str(refresh.access_token),  # Access token
             'refresh': str(refresh)  # Refresh token
         }
