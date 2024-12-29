@@ -1,8 +1,8 @@
 from rest_framework import viewsets, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .serializers import  CurrencySerializer , RegistrationSerializer, LoginSerializer
-from .models import Currency
+from .serializers import  CurrencySerializer , RegistrationSerializer, LoginSerializer, EventSerializer
+from .models import Currency, Event
 
 
 # Create your views here.
@@ -14,6 +14,10 @@ class CurrencyViewSet(viewsets.ModelViewSet):
     queryset =Currency.objects.all()
     serializer_class = CurrencySerializer
 
+
+class EventViewSet(viewsets.ModelViewSet):
+    queryset =Event.objects.all()
+    serializer_class = EventSerializer
 
 class RegisterView(APIView):
     def post(self, request, *args, **kwargs):

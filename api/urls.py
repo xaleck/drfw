@@ -1,10 +1,11 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import CurrencyViewSet, RegisterView, LoginView
+from .views import CurrencyViewSet, RegisterView, LoginView, EventViewSet
 
 router = DefaultRouter()
 
 router.register(r'currency', CurrencyViewSet)
+router.register(r'events', EventViewSet)
 
 
 urlpatterns = [

@@ -10,8 +10,13 @@ class Currency(models.Model):
         return self.name
     
 
-class article(models.Model):
-    name = models.CharField(max_length=250)
+class Event(models.Model):
+    user = models.CharField(max_length=250)
+    currency = models.CharField(max_length=250)
+    count = models.CharField(max_length=250)
+    price = models.CharField(max_length=250)
+    sum = models.CharField(max_length=250)
+    type = models.CharField(max_length=250)
 
     def __str__(self):
-        return self.name
+        return self.sum
