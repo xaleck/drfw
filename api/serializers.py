@@ -2,12 +2,12 @@ from rest_framework import serializers
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
-from .models import Article
+from .models import Currency
 
 
-class ArticleSerializer(serializers.ModelSerializer):
+class CurrencySerializer(serializers.ModelSerializer):
     class Meta:
-        model = Article
+        model = Currency
         fields = "__all__"
 
 

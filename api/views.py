@@ -1,16 +1,16 @@
 from rest_framework import viewsets, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .serializers import  ArticleSerializer , RegistrationSerializer, LoginSerializer
-from .models import Article
+from .serializers import  CurrencySerializer , RegistrationSerializer, LoginSerializer
+from .models import Currency
 
 
 # Create your views here.
 
 
-class ArticleViewSet(viewsets.ModelViewSet):
-    queryset = Article.objects.all()
-    serializer_class = ArticleSerializer
+class CurrencyViewSet(viewsets.ModelViewSet):
+    queryset =Currency.objects.all()
+    serializer_class = CurrencySerializer
 
 
 class RegisterView(APIView):
@@ -34,3 +34,4 @@ class LoginView(APIView):
         if serializer.is_valid():
              return Response(serializer.save(), status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    

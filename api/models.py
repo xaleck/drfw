@@ -1,7 +1,7 @@
 from django.db import models
 
 # Create your models here.
-class Article(models.Model):
+class Currency(models.Model):
     title = models.CharField(max_length=250)
 
     def __str__(self):
