@@ -38,6 +38,38 @@ class EventViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(type__iexact=event_type)
 
         return queryset
+    def update(self, request, *args, **kwargs):
+        # Retrieve the event object by its primary key (pk)
+        instance = self.get_object()
+
+        # Validate the input data and ensure the fields are correct
+        serializer = self.get_serializer(instance, data=request.data, partial=True)  # Partial update
+
+        if serializer.is_valid():
+            # Validate 'sum' field if it's passed, and ensure it's a valid number
+            sum_value = serializer.validated_data.get('sum', None)
+            if sum_value is not None:
+                try:
+                    # Ensure 'sum' is a valid number
+                    sum_value = float(sum_value)
+                except ValueError:
+                    return Response({'error': 'Invalid sum value'}, status=status.HTTP_400_BAD_REQUEST)
+
+                # If valid, update the sum in validated data
+                serializer.validated_data['sum'] = str(sum_value)
+
+            # Now save the updated object with new values
+            self.perform_update(serializer)
+
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def perform_update(self, serializer):
+        """
+        Override this method to ensure the event gets updated in the database
+        """
+        serializer.save()
 
     
 class LoginView(APIView):
