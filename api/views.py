@@ -1,4 +1,5 @@
 from rest_framework import viewsets, status
+from django.db.models import Sum, F, ExpressionWrapper, DecimalField
 from rest_framework.views import APIView
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.response import Response
@@ -10,6 +11,45 @@ from .filters import EventFilter
 
 # Create your views here.
 
+def get_cash_register_data():
+    # Buy aggregation
+    buy_data = Event.objects.filter(type='Buy') \
+        .values('currency') \
+        .annotate(
+            buy_total=Sum('sum'),
+            buy_average=ExpressionWrapper(
+                Sum(F('price') * F('count')), 
+                output_field=DecimalField()
+            ) / Sum('count')
+        )
+    
+    # Sell aggregation
+    sell_data = Event.objects.filter(type='Sell') \
+        .values('currency') \
+        .annotate(
+            sell_total=Sum('sum'),
+            sell_average=ExpressionWrapper(
+                Sum(F('price') * F('count')), 
+                output_field=DecimalField()
+            ) / Sum('count')
+        )
+
+    # Combine the results (you can also use `Q` objects for conditional logic)
+    combined_data = []
+    for buy in buy_data:
+        currency = buy['currency']
+        sell = next((item for item in sell_data if item['currency'] == currency), None)
+        profit = sell['sell_total'] - buy['buy_total'] if sell else 0.0
+        combined_data.append({
+            'currency': currency,
+            'buy_total': buy['buy_total'],
+            'buy_average': buy['buy_average'],
+            'sell_total': sell['sell_total'] if sell else 0.0,
+            'sell_average': sell['sell_average'] if sell else 0.0,
+            'profit': profit
+        })
+    
+    return combined_data
 
 
 
@@ -39,37 +79,52 @@ class EventViewSet(viewsets.ModelViewSet):
 
         return queryset
     def update(self, request, *args, **kwargs):
-        # Retrieve the event object by its primary key (pk)
-        instance = self.get_object()
+        event = self.get_object()  # Get the existing event object
+        data = request.data
+        
+        # Extract fields from request data
+        price = data.get('price')
+        count = data.get('count')
+        event_type = data.get('type')
+        currency = data.get('currency')
+        
+        # Ensure price, count, and currency are provided and valid
+        if not price or not count or not currency:
+            return Response(
+                {'detail': 'Price, count, and currency are required.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
-        # Validate the input data and ensure the fields are correct
-        serializer = self.get_serializer(instance, data=request.data, partial=True)  # Partial update
+        # Calculate sum based on price and count
+        try:
+            price = float(price)
+            count = float(count)
+            sum_value = price * count
+        except ValueError:
+            return Response(
+                {'detail': 'Price and count must be valid numbers.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
-        if serializer.is_valid():
-            # Validate 'sum' field if it's passed, and ensure it's a valid number
-            sum_value = serializer.validated_data.get('sum', None)
-            if sum_value is not None:
-                try:
-                    # Ensure 'sum' is a valid number
-                    sum_value = float(sum_value)
-                except ValueError:
-                    return Response({'error': 'Invalid sum value'}, status=status.HTTP_400_BAD_REQUEST)
+        # Prepare data for update (sum is automatically calculated)
+        updated_data = {
+            'price': price,
+            'count': count,
+            'sum': round(sum_value, 2),
+            'type': event_type,
+            'currency': currency
+        }
 
-                # If valid, update the sum in validated data
-                serializer.validated_data['sum'] = str(sum_value)
+        # Update the event fields (excluding sum, as it is auto-calculated)
+        for key, value in updated_data.items():
+            setattr(event, key, value)
 
-            # Now save the updated object with new values
-            self.perform_update(serializer)
+        # Save the updated event object
+        event.save()
 
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def perform_update(self, serializer):
-        """
-        Override this method to ensure the event gets updated in the database
-        """
-        serializer.save()
+        # Serialize the updated event and return the response
+        serializer = self.get_serializer(event)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     
 class LoginView(APIView):
@@ -113,3 +168,17 @@ class UsersView(APIView):
         except User.DoesNotExist:
             # Return a 404 error if the user doesn't exist
             return Response({"message": "User not found."}, status=status.HTTP_404_NOT_FOUND)
+
+
+class CashRegisterView(APIView):
+    def get(self, request):
+        try:
+            # Get the cash register data
+            data = get_cash_register_data()
+
+            # Return the data as a JSON response
+            return Response(data, status=status.HTTP_200_OK)
+        
+        except Exception as e:
+            # Handle any exceptions that occur during data fetching
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
