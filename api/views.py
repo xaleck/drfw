@@ -39,8 +39,13 @@ def get_cash_register_data():
     for buy in buy_data:
         currency = buy['currency']
         sell = next((item for item in sell_data if item['currency'] == currency), None)
-        profit = sell['sell_total'] - buy['buy_total'] if sell else 0.0
-        combined_data.append({
+        
+        if sell:
+            # Calculate profit: sell_total * (sell_average - buy_average)
+            profit = sell['sell_total'] * (sell['sell_average'] - buy['buy_average'])
+        else:
+            profit = 0.0
+            combined_data.append({
             'currency': currency,
             'buy_total': buy['buy_total'],
             'buy_average': buy['buy_average'],
