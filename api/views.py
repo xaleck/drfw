@@ -1,9 +1,11 @@
 from rest_framework import viewsets, status
 from rest_framework.views import APIView
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.response import Response
 from django.contrib.auth.models import User
 from .serializers import  CurrencySerializer , RegistrationSerializer, LoginSerializer, EventSerializer, UserSerializer
 from .models import Currency, Event
+from .filters import EventFilter
 
 
 # Create your views here.
@@ -19,6 +21,23 @@ class CurrencyViewSet(viewsets.ModelViewSet):
 class EventViewSet(viewsets.ModelViewSet):
     queryset =Event.objects.all()
     serializer_class = EventSerializer
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = EventFilter  # Use the filter class we just created
+
+    # Optionally, you can override the `get_queryset` method to handle custom filtering logic:
+    def get_queryset(self):
+        queryset = super().get_queryset()
+
+        # Filter events by currency and type if provided in the query parameters
+        currency = self.request.query_params.get('currency', None)
+        event_type = self.request.query_params.get('type', None)
+
+        if currency:
+            queryset = queryset.filter(currency__iexact=currency)
+        if event_type:
+            queryset = queryset.filter(type__iexact=event_type)
+
+        return queryset
 
     
 class LoginView(APIView):
