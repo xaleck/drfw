@@ -62,11 +62,13 @@ def get_cash_register_data():
 class CurrencyViewSet(viewsets.ModelViewSet):
     queryset =Currency.objects.all()
     serializer_class = CurrencySerializer
+    permission_classes = [IsAuthenticated]
 
 
 class EventViewSet(viewsets.ModelViewSet):
     queryset =Event.objects.all()
     serializer_class = EventSerializer
+
     filter_backends = (DjangoFilterBackend,)
     permission_classes = [IsAuthenticated]
     filterset_class = EventFilter  # Use the filter class we just created
@@ -179,6 +181,7 @@ class UsersView(APIView):
 
 
 class CashRegisterView(APIView):
+    permission_classes = [IsAuthenticated] 
     def get(self, request):
         try:
             # Get the cash register data
