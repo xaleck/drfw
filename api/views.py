@@ -1,5 +1,6 @@
 from rest_framework import viewsets, status
 from django.db.models import Sum, F, ExpressionWrapper, DecimalField
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.response import Response
@@ -67,6 +68,7 @@ class EventViewSet(viewsets.ModelViewSet):
     queryset =Event.objects.all()
     serializer_class = EventSerializer
     filter_backends = (DjangoFilterBackend,)
+    permission_classes = [IsAuthenticated]
     filterset_class = EventFilter  # Use the filter class we just created
 
     # Optionally, you can override the `get_queryset` method to handle custom filtering logic:
@@ -141,6 +143,7 @@ class LoginView(APIView):
     
 
 class UsersView(APIView):
+    permission_classes = [IsAuthenticated]
     def get(self, request, *args, **kwargs):
         users = User.objects.all() 
         user_serializer = UserSerializer(users, many=True)
@@ -186,4 +189,16 @@ class CashRegisterView(APIView):
         
         except Exception as e:
             # Handle any exceptions that occur during data fetching
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        
+
+class ClearAllEventsView(APIView):
+    permission_classes = [IsAuthenticated]  # Ensure the user is authenticated
+
+    def post(self, request, *args, **kwargs):
+        try:
+            # Delete all events
+            Event.objects.all().delete()
+            return Response({"message": "All events cleared successfully!"}, status=status.HTTP_200_OK)
+        except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
