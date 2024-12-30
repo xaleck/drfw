@@ -15,6 +15,10 @@ class EventSerializer(serializers.ModelSerializer):
         model = Event
         fields = "__all__"
 
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username']
 
 class RegistrationSerializer(serializers.ModelSerializer):
     class Meta:
@@ -52,3 +56,5 @@ class LoginSerializer(serializers.Serializer):
             'access': str(refresh.access_token),  # Access token
             'refresh': str(refresh)  # Refresh token
         }
+    
+

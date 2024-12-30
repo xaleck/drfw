@@ -12,6 +12,7 @@ class Currency(models.Model):
 
 class Event(models.Model):
     user = models.CharField(max_length=250)
+    datetime = models.DateTimeField()
     currency = models.CharField(max_length=250)
     count = models.CharField(max_length=250)
     price = models.CharField(max_length=250)
