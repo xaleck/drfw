@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 
 # Create your models here.
 
@@ -12,7 +13,7 @@ class Currency(models.Model):
 
 class Event(models.Model):
     user = models.CharField(max_length=250)
-    datetime = models.DateTimeField()
+    datetime = models.DateTimeField(default=timezone.now, null=True, blank=True)
     currency = models.CharField(max_length=250)
     count = models.CharField(max_length=250)
     price = models.CharField(max_length=250)

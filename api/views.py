@@ -48,3 +48,17 @@ class UsersView(APIView):
             }, status=status.HTTP_201_CREATED)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def delete(self, request, *args, **kwargs):
+        # Get the user id from the URL
+        user_id = kwargs.get('id')
+        
+        try:
+            # Try to get the user object by the given id
+            user = User.objects.get(id=user_id)
+            user.delete()
+            return Response({"message": f"User with id {user_id} deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
+        
+        except User.DoesNotExist:
+            # Return a 404 error if the user doesn't exist
+            return Response({"message": "User not found."}, status=status.HTTP_404_NOT_FOUND)

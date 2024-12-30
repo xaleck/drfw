@@ -11,5 +11,6 @@ router.register(r'events', EventViewSet)
 urlpatterns = [
     path('', include(router.urls)),
     path('login/', LoginView.as_view(), name = 'login'),
-    path('users/', UsersView.as_view(), name='users')
+    path('users/', UsersView.as_view(), name='users'),
+    path('delete-user/<int:id>/', UsersView.as_view(), name='delete-user')
 ]
