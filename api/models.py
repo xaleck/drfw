@@ -16,9 +16,9 @@ class Event(models.Model):
     datetime = models.DateTimeField(default=timezone.now, null=True, blank=True)
     currency = models.CharField(max_length=250)
     price = models.DecimalField(max_digits=10, decimal_places=2)
-    count = models.DecimalField(max_digits=10, decimal_places=2) 
-    sum = models.DecimalField(max_digits=10, decimal_places=2)
+    count = models.DecimalField(max_digits=10, decimal_places=2)
+    transaction_sum = models.DecimalField(max_digits=10, decimal_places=2)  # Renamed `sum` to `transaction_sum`
     type = models.CharField(max_length=250)
 
     def __str__(self):
-        return self.sum
+        return str(self.transaction_sum)

@@ -9,55 +9,83 @@ from .serializers import  CurrencySerializer , RegistrationSerializer, LoginSeri
 from .models import Currency, Event
 from .filters import EventFilter
 
-
-# Create your views here.
+from django.db.models import Sum, F, ExpressionWrapper
+from django.db.models import DecimalField
 
 def get_cash_register_data():
     # Buy aggregation
+    print("triggered")
     buy_data = Event.objects.filter(type='Buy') \
         .values('currency') \
         .annotate(
-            buy_total=Sum('sum'),
+            buy_total=Sum('transaction_sum'),  # Using transaction_sum instead of sum
             buy_average=ExpressionWrapper(
                 Sum(F('price') * F('count')), 
                 output_field=DecimalField()
-            ) / Sum('count')
+            ) / Sum('count'),
+            
         )
     
     # Sell aggregation
     sell_data = Event.objects.filter(type='Sell') \
         .values('currency') \
         .annotate(
-            sell_total=Sum('sum'),
+            sell_total=Sum('transaction_sum'),  # Using transaction_sum instead of sum
             sell_average=ExpressionWrapper(
                 Sum(F('price') * F('count')), 
                 output_field=DecimalField()
-            ) / Sum('count')
+            ) / Sum('count'),
+            sell_count=Sum('count') 
         )
 
-    # Combine the results (you can also use `Q` objects for conditional logic)
+    # Create dictionaries for quick lookup
+    buy_data_dict = {item['currency']: item for item in buy_data}
+    sell_data_dict = {item['currency']: item for item in sell_data}
+    
+    # Combine the results, handling both buy and sell for all currencies
     combined_data = []
-    for buy in buy_data:
-        currency = buy['currency']
-        sell = next((item for item in sell_data if item['currency'] == currency), None)
+    
+    # Set of all unique currencies (from both Buy and Sell)
+    all_currencies = set(buy_data_dict.keys()).union(set(sell_data_dict.keys()))
+    
+    for currency in all_currencies:
+        # Get buy and sell data for this currency, default to None if not found
+        buy = buy_data_dict.get(currency, None)
+        sell = sell_data_dict.get(currency, None)
         
-        if sell:
-            # Calculate profit: sell_total * (sell_average - buy_average)
-            profit = sell['sell_total'] * (sell['sell_average'] - buy['buy_average'])
+        # Default values for buy data if no buy record exists
+        if buy:
+            buy_total = buy['buy_total']
+            buy_average = buy['buy_average']
         else:
-            profit = 0.0
-            combined_data.append({
+            buy_total = 0
+            buy_average = 0
+        print(currency, sell,buy)
+        # Default values for sell data if no sell record exists
+        if sell:
+            sell_total = sell['sell_total']
+            sell_average = sell['sell_average']
+            sell_count = sell['sell_count'] 
+            # Calculate profit: sell_total * (sell_average - buy_average)
+            profit = sell_count * (sell_average - buy_average)
+        else:
+            sell_total = 0
+            sell_average = 0
+            profit = 0
+            sell_count = 0
+        
+        # Append the combined data
+        combined_data.append({
             'currency': currency,
-            'buy_total': buy['buy_total'],
-            'buy_average': buy['buy_average'],
-            'sell_total': sell['sell_total'] if sell else 0.0,
-            'sell_average': sell['sell_average'] if sell else 0.0,
+            'buy_total': buy_total,
+            'buy_average': buy_average,
+            'sell_total': sell_total,
+            'sell_average': sell_average,
             'profit': profit
         })
     
+    print(combined_data)
     return combined_data
-
-
 
 class CurrencyViewSet(viewsets.ModelViewSet):
     queryset =Currency.objects.all()
@@ -182,7 +210,7 @@ class UsersView(APIView):
 
 class CashRegisterView(APIView):
     permission_classes = [IsAuthenticated] 
-    def get(self, request):
+    def get(self, request,*args, **kwargs):
         try:
             # Get the cash register data
             data = get_cash_register_data()
