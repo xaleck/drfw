@@ -25,12 +25,14 @@ class RegistrationSerializer(serializers.ModelSerializer):
         model = User
         fields = ['username','password']  
 
-    def create(self, validated_data):
+    def create(self, validated_data,):
         
         user = User.objects.create_user(
             username=validated_data['username'],
             password=validated_data['password'],
         )
+        if validated_data["isAdmin"] is True:
+            user.is_superuser = True
         return user
 
 class LoginSerializer(serializers.Serializer):
@@ -53,6 +55,7 @@ class LoginSerializer(serializers.Serializer):
         print(user)
         return {
             'username': validated_data["username"],
+            'isAdmin':  user.is_superuser,
             'access': str(refresh.access_token),  # Access token
             'refresh': str(refresh)  # Refresh token
         }

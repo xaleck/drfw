@@ -47,8 +47,8 @@ def get_cash_register_data():
     combined_data = [{
         "table":[]
     }]
-    total_profit = 0
-    soms = 0
+    total_profit = 0.0  
+    soms = 0.0
     # Set of all unique currencies (from both Buy and Sell)
     all_currencies = set(buy_data_dict.keys()).union(set(sell_data_dict.keys()))
     
@@ -242,5 +242,27 @@ class ClearAllEventsView(APIView):
             # Delete all events
             Event.objects.all().delete()
             return Response({"message": "All events cleared successfully!"}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        
+class ClearAllEventsByCuurency(APIView):
+    permission_classes = [IsAuthenticated]
+    def delete(self, request, *args, **kwargs):
+        # Get the currency parameter from the query string
+        currency = request.query_params.get('currency', None)
+
+        if not currency:
+            return Response({"error": "Currency is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            # Filter events by the specified currency and delete them
+            events_to_delete = Event.objects.filter(currency__iexact=currency)
+            events_deleted_count = events_to_delete.delete()[0]  # The delete method returns a tuple with the count of deleted rows
+
+            if events_deleted_count > 0:
+                return Response({"message": f"All events for currency {currency} deleted successfully!"}, status=status.HTTP_200_OK)
+            else:
+                return Response({"message": f"No events found for currency {currency}."}, status=status.HTTP_404_NOT_FOUND)
+
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)

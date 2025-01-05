@@ -1,7 +1,7 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenRefreshView, TokenObtainPairView
-from .views import CurrencyViewSet, LoginView, EventViewSet, UsersView,CashRegisterView,ClearAllEventsView
+from .views import CurrencyViewSet, LoginView, EventViewSet, UsersView,CashRegisterView,ClearAllEventsView,ClearAllEventsByCuurency
 
 router = DefaultRouter()
 
@@ -14,6 +14,7 @@ urlpatterns = [
     path('login/', LoginView.as_view(), name = 'login'),
     path('users/', UsersView.as_view(), name='users'),
     path('delete-user/<int:id>/', UsersView.as_view(), name='delete-user'),
+    path('clear-events-by-currency/', ClearAllEventsByCuurency.as_view(), name='clear-events-by-currency'),
      path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('cash_register/', CashRegisterView.as_view(), name='cash_register'),
