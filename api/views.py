@@ -23,6 +23,7 @@ def get_cash_register_data():
                 Sum(F('price') * F('count')), 
                 output_field=DecimalField()
             ) / Sum('count'),
+            buy_count=Sum('count') 
             
         )
     
@@ -60,6 +61,7 @@ def get_cash_register_data():
         if buy:
             buy_total = buy['buy_total']
             buy_average = buy['buy_average']
+            buy_count = buy['buy_count'] 
         else:
             buy_total = 0
             buy_average = 0
@@ -82,8 +84,10 @@ def get_cash_register_data():
             'currency': currency,
             'buy_total': buy_total,
             'buy_average': buy_average,
+            'buy_count':buy_count,
             'sell_total': sell_total,
             'sell_average': sell_average,
+            'sell_count':sell_count,
             'profit': profit
         })
     
