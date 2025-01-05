@@ -63,9 +63,9 @@ def get_cash_register_data():
             buy_average = buy['buy_average']
             buy_count = buy['buy_count'] 
         else:
-            buy_total = 0
-            buy_average = 0
-            buy_count = 0
+            buy_total = 0.0
+            buy_average = 0.0
+            buy_count = 0.0
         # Default values for sell data if no sell record exists
         if sell:
             sell_total = sell['sell_total']
@@ -74,10 +74,10 @@ def get_cash_register_data():
             # Calculate profit: sell_total * (sell_average - buy_average)
             profit = sell_count * (sell_average -buy_average)
         else:
-            sell_total = 0
-            sell_average = 0
-            sell_count =0
-            profit = 0
+            sell_total = 0.0
+            sell_average = 0.0
+            sell_count =0.0
+            profit = 0.0
         total_profit += profit
         soms += sell_total - buy_total
         # Append the combined data
