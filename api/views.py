@@ -43,8 +43,11 @@ def get_cash_register_data():
     sell_data_dict = {item['currency']: item for item in sell_data}
     
     # Combine the results, handling both buy and sell for all currencies
-    combined_data = []
-    
+    combined_data = [{
+        "table":[]
+    }]
+    total_profit = 0
+    soms = 0
     # Set of all unique currencies (from both Buy and Sell)
     all_currencies = set(buy_data_dict.keys()).union(set(sell_data_dict.keys()))
     
@@ -67,14 +70,15 @@ def get_cash_register_data():
             sell_average = sell['sell_average']
             sell_count = sell['sell_count'] 
             # Calculate profit: sell_total * (sell_average - buy_average)
-            profit = sell_total - buy_total
+            profit = sell_count * (sell_average -buy_average)
         else:
             sell_total = 0
             sell_average = 0
             profit = 0
-        
+        total_profit += profit
+        soms += sell_total - buy_total
         # Append the combined data
-        combined_data.append({
+        combined_data["table"].append({
             'currency': currency,
             'buy_total': buy_total,
             'buy_average': buy_average,
@@ -83,8 +87,12 @@ def get_cash_register_data():
             'profit': profit
         })
     
-    print(combined_data)
+    combined_data["profit_rest"] = {
+        "profit": total_profit,
+        "soms": soms
+    }
     return combined_data
+
 
 class CurrencyViewSet(viewsets.ModelViewSet):
     queryset =Currency.objects.all()
@@ -220,7 +228,6 @@ class CashRegisterView(APIView):
         except Exception as e:
             # Handle any exceptions that occur during data fetching
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-        
 
 class ClearAllEventsView(APIView):
     permission_classes = [IsAuthenticated]  # Ensure the user is authenticated
