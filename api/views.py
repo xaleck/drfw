@@ -78,7 +78,7 @@ def get_cash_register_data():
         total_profit += profit
         soms += sell_total - buy_total
         # Append the combined data
-        combined_data["table"].append({
+        combined_data[0]["table"].append({
             'currency': currency,
             'buy_total': buy_total,
             'buy_average': buy_average,
@@ -87,7 +87,7 @@ def get_cash_register_data():
             'profit': profit
         })
     
-    combined_data["profit_rest"] = {
+    combined_data[0]["profit_rest"] = {
         "profit": total_profit,
         "soms": soms
     }
