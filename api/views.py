@@ -65,7 +65,7 @@ def get_cash_register_data():
         else:
             buy_total = 0
             buy_average = 0
-        print(currency, sell,buy)
+            buy_count = 0
         # Default values for sell data if no sell record exists
         if sell:
             sell_total = sell['sell_total']
@@ -76,6 +76,7 @@ def get_cash_register_data():
         else:
             sell_total = 0
             sell_average = 0
+            sell_count =0
             profit = 0
         total_profit += profit
         soms += sell_total - buy_total
